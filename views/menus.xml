@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Submenú dentro de Contabilidad > Contabilidad (menu_finance_entries) -->
+    <menuitem
+        id="menu_employee_expenses_root"
+        name="Gastos de Empleados"
+        parent="account.menu_finance_entries"
+        sequence="99"
+        groups="aerotec_employee_expenses.group_expense_manager"/>
+
+    <menuitem
+        id="menu_employee_advances"
+        name="Anticipos de Sueldo"
+        parent="menu_employee_expenses_root"
+        action="action_employee_advance"
+        sequence="10"
+        groups="aerotec_employee_expenses.group_expense_manager"/>
+
+    <menuitem
+        id="menu_expense_reports"
+        name="Rendiciones de Gastos"
+        parent="menu_employee_expenses_root"
+        action="action_expense_report"
+        sequence="20"
+        groups="aerotec_employee_expenses.group_expense_manager"/>
+
+</odoo>

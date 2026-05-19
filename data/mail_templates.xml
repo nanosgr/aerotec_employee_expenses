@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. Anticipo confirmado → al empleado -->
+    <record id="mail_template_advance_confirmed" model="mail.template">
+        <field name="name">Anticipo de sueldo confirmado</field>
+        <field name="model_id" ref="aerotec_employee_expenses.model_aerotec_employee_advance"/>
+        <field name="subject">Anticipo de sueldo {{ object.name }} — {{ object.amount }} {{ object.currency_id.name }}</field>
+        <field name="email_to">{{ object.employee_id.work_email }}</field>
+        <field name="body_html"><![CDATA[
+<p>Hola <strong>{{ object.employee_id.name }}</strong>,</p>
+<p>
+    Se te ha asignado un anticipo de sueldo por
+    <strong>{{ object.currency_id.symbol }} {{ '%.2f' % object.amount }}</strong>
+    a través de <strong>{{ object.payment_method == 'cash' and 'Efectivo' or object.payment_method == 'mercado_pago' and 'Mercado Pago' or 'Tarjeta Corporativa' }}</strong>.
+</p>
+<p>
+    Referencia: <strong>{{ object.name }}</strong><br/>
+    Fecha: <strong>{{ object.date }}</strong>
+</p>
+<p>
+    Una vez que hayas realizado los gastos, ingresá al portal para cargar tus comprobantes y rendir los gastos:
+</p>
+<p>
+    <a href="{{ ctx.get('base_url', '') }}/my/expenses" style="background-color:#875A7B;color:white;padding:8px 16px;border-radius:4px;text-decoration:none;">
+        Ir al portal de gastos
+    </a>
+</p>
+<p>Saludos,<br/>Administración</p>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- 2. Rendición enviada → al gerente -->
+    <record id="mail_template_report_submitted" model="mail.template">
+        <field name="name">Rendición de gastos enviada para aprobación</field>
+        <field name="model_id" ref="aerotec_employee_expenses.model_aerotec_expense_report"/>
+        <field name="subject">Rendición {{ object.name }} de {{ object.employee_id.name }} — pendiente de aprobación</field>
+        <field name="email_to">{{ object.employee_id.parent_id.work_email or object.company_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<p>Hola,</p>
+<p>
+    El empleado <strong>{{ object.employee_id.name }}</strong> envió la rendición de gastos
+    <strong>{{ object.name }}</strong> para su aprobación.
+</p>
+<table style="border-collapse:collapse;width:100%;margin:16px 0;">
+    <tr>
+        <td style="padding:6px;border:1px solid #ddd;background:#f5f5f5;"><strong>Anticipo</strong></td>
+        <td style="padding:6px;border:1px solid #ddd;">{{ object.advance_id.name }}</td>
+    </tr>
+    <tr>
+        <td style="padding:6px;border:1px solid #ddd;background:#f5f5f5;"><strong>Monto del anticipo</strong></td>
+        <td style="padding:6px;border:1px solid #ddd;">{{ object.currency_id.symbol }} {{ '%.2f' % object.advance_id.amount }}</td>
+    </tr>
+    <tr>
+        <td style="padding:6px;border:1px solid #ddd;background:#f5f5f5;"><strong>Total gastos rendidos</strong></td>
+        <td style="padding:6px;border:1px solid #ddd;">{{ object.currency_id.symbol }} {{ '%.2f' % object.total_expenses }}</td>
+    </tr>
+    <tr>
+        <td style="padding:6px;border:1px solid #ddd;background:#f5f5f5;"><strong>Remanente a devolver</strong></td>
+        <td style="padding:6px;border:1px solid #ddd;">{{ object.currency_id.symbol }} {{ '%.2f' % object.surplus_amount }}</td>
+    </tr>
+    <tr>
+        <td style="padding:6px;border:1px solid #ddd;background:#f5f5f5;"><strong>Fecha</strong></td>
+        <td style="padding:6px;border:1px solid #ddd;">{{ object.date }}</td>
+    </tr>
+</table>
+<p>
+    Ingresá al sistema para revisar y aprobar la rendición.
+</p>
+<p>Saludos,<br/>Sistema de Gastos de Empleados</p>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- 3. Rendición aprobada → al empleado -->
+    <record id="mail_template_report_approved" model="mail.template">
+        <field name="name">Rendición de gastos aprobada</field>
+        <field name="model_id" ref="aerotec_employee_expenses.model_aerotec_expense_report"/>
+        <field name="subject">Tu rendición {{ object.name }} fue aprobada</field>
+        <field name="email_to">{{ object.employee_id.work_email }}</field>
+        <field name="body_html"><![CDATA[
+<p>Hola <strong>{{ object.employee_id.name }}</strong>,</p>
+<p>
+    Tu rendición de gastos <strong>{{ object.name }}</strong> fue <strong>aprobada</strong>.
+</p>
+{% if object.surplus_amount > 0 %}
+<p>
+    Recordá que tenés un remanente de
+    <strong>{{ object.currency_id.symbol }} {{ '%.2f' % object.surplus_amount }}</strong>
+    para devolver a la empresa.
+</p>
+{% endif %}
+<p>
+    Podés ver el estado de tu rendición en el portal:
+</p>
+<p>
+    <a href="{{ ctx.get('base_url', '') }}/my/expenses/{{ object.id }}" style="background-color:#875A7B;color:white;padding:8px 16px;border-radius:4px;text-decoration:none;">
+        Ver rendición
+    </a>
+</p>
+<p>Saludos,<br/>Administración</p>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- 4. Rendición rechazada → al empleado -->
+    <record id="mail_template_report_rejected" model="mail.template">
+        <field name="name">Rendición de gastos rechazada / devuelta</field>
+        <field name="model_id" ref="aerotec_employee_expenses.model_aerotec_expense_report"/>
+        <field name="subject">Tu rendición {{ object.name }} fue devuelta para corrección</field>
+        <field name="email_to">{{ object.employee_id.work_email }}</field>
+        <field name="body_html"><![CDATA[
+<p>Hola <strong>{{ object.employee_id.name }}</strong>,</p>
+<p>
+    Tu rendición de gastos <strong>{{ object.name }}</strong> fue devuelta a borrador para que puedas corregirla.
+</p>
+{% if object.rejection_reason %}
+<p><strong>Motivo:</strong> {{ object.rejection_reason }}</p>
+{% endif %}
+<p>
+    Ingresá al portal para realizar las correcciones necesarias y volver a enviarla:
+</p>
+<p>
+    <a href="{{ ctx.get('base_url', '') }}/my/expenses/{{ object.id }}" style="background-color:#875A7B;color:white;padding:8px 16px;border-radius:4px;text-decoration:none;">
+        Corregir rendición
+    </a>
+</p>
+<p>Saludos,<br/>Administración</p>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+</odoo>

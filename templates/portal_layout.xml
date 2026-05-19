@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Agrega entrada en el portal home para las rendiciones de gastos -->
+    <template id="portal_my_home_expenses" name="Gastos de Empleados" customize_show="True"
+        inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_service_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_service_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/aerotec_employee_expenses/static/src/img/expenses.svg'" />
+                <t t-set="title">Mis Rendiciones de Gastos</t>
+                <t t-set="url" t-value="'/my/expenses'"/>
+                <t t-set="text">Cargá tus comprobantes y rendí tus gastos</t>
+                <t t-set="placeholder_count" t-value="'expense_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- Template para cuando el usuario no tiene empleado asociado -->
+    <template id="portal_no_employee" name="Sin empleado asociado">
+        <t t-call="portal.portal_layout">
+            <t t-set="page_name" t-value="'expenses'"/>
+            <div class="o_portal_wrap">
+                <div class="container py-5">
+                    <div class="alert alert-warning">
+                        <h4 class="alert-heading">Sin empleado asociado</h4>
+                        <p>
+                            Tu usuario no está vinculado a ningún empleado en el sistema.
+                            Por favor, contactá al área de Administración para que configuren tu acceso.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Lista de rendiciones del empleado -->
+    <template id="portal_my_expenses" name="Mis Rendiciones de Gastos">
+        <t t-call="portal.portal_layout">
+            <t t-set="page_name" t-value="'expenses'"/>
+            <div class="o_portal_wrap">
+                <div class="container py-4">
+
+                    <!-- Cabecera -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2>Mis Rendiciones de Gastos</h2>
+                        </div>
+                    </div>
+
+                    <!-- Anticipo activo -->
+                    <t t-if="active_advance">
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Anticipo activo:</strong>
+                                    <t t-out="active_advance.name"/> —
+                                    <t t-out="active_advance.currency_id.symbol"/>
+                                    <t t-out="'%.2f' % active_advance.amount"/>
+                                    (<t t-out="dict(active_advance._fields['payment_method'].selection).get(active_advance.payment_method)"/>)
+                                </div>
+                                <t t-if="not active_advance.expense_report_id">
+                                    <form action="/my/expenses/new" method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            Nueva rendición
+                                        </button>
+                                    </form>
+                                </t>
+                                <t t-else="">
+                                    <a t-att-href="'/my/expenses/%d' % active_advance.expense_report_id.id"
+                                        class="btn btn-outline-primary btn-sm">
+                                        Ver rendición en curso
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="alert alert-secondary mb-4">
+                            <p class="mb-0">No tenés ningún anticipo activo en este momento.</p>
+                        </div>
+                    </t>
+
+                    <!-- Tabla de rendiciones -->
+                    <t t-if="reports">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Referencia</th>
+                                        <th>Fecha</th>
+                                        <th>Anticipo</th>
+                                        <th class="text-end">Total gastos</th>
+                                        <th class="text-end">Remanente</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="reports" t-as="report">
+                                        <tr>
+                                            <td>
+                                                <a t-att-href="'/my/expenses/%d' % report.id">
+                                                    <t t-out="report.name"/>
+                                                </a>
+                                            </td>
+                                            <td><t t-out="report.date"/></td>
+                                            <td><t t-out="report.advance_id.name"/></td>
+                                            <td class="text-end">
+                                                <t t-out="report.currency_id.symbol"/>
+                                                <t t-out="'%.2f' % report.total_expenses"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <t t-if="report.surplus_amount > 0">
+                                                    <t t-out="report.currency_id.symbol"/>
+                                                    <t t-out="'%.2f' % report.surplus_amount"/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                            <td>
+                                                <span t-att-class="'badge ' + {
+                                                    'draft': 'bg-secondary',
+                                                    'submitted': 'bg-warning text-dark',
+                                                    'approved': 'bg-primary',
+                                                    'posted': 'bg-success',
+                                                }.get(report.state, 'bg-secondary')">
+                                                    <t t-out="dict(report._fields['state'].selection).get(report.state)"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <p>Todavía no tenés rendiciones registradas.</p>
+                        </div>
+                    </t>
+
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

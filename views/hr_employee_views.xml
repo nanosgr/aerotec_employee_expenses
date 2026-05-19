@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Extiende la vista del empleado para permitir seleccionar usuarios de portal
+        como "Usuario relacionado". El domain original filtra con ('share', '=', False),
+        lo que excluye a los usuarios de portal (share=True). Lo reemplazamos para
+        admitir ambos tipos: usuarios internos de la empresa y usuarios de portal.
+    -->
+    <record id="hr_employee_view_form_portal_user" model="ir.ui.view">
+        <field name="name">hr.employee.view.form.portal.user</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id'][@widget='many2one_avatar_user']" position="attributes">
+                <attribute name="domain">['|', ('share', '=', True), ('company_ids', 'in', company_id)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

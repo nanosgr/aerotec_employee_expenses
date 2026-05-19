@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.aerotec.expenses</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='hr']" position="inside">
+                <block title="Gastos de Empleados" name="employee_expenses_setting_container">
+                    <setting string="Cuenta de anticipos de sueldo"
+                        help="Cuenta contable que se debita al crear un anticipo y se acredita al contabilizar la rendición.">
+                        <field name="advance_account_id" options="{'no_create': True}"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
