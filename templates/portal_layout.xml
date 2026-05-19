@@ -9,7 +9,7 @@
         </xpath>
         <div id="portal_service_category" position="inside">
             <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/aerotec_employee_expenses/static/src/img/expenses.svg'" />
+                <t t-set="icon" t-value="'/aerotec_employee_expenses/static/src/img/expenses.png'" />
                 <t t-set="title">Mis Rendiciones de Gastos</t>
                 <t t-set="url" t-value="'/my/expenses'"/>
                 <t t-set="text">Cargá tus comprobantes y rendí tus gastos</t>
