@@ -17,6 +17,7 @@
                 <field name="advance_id"/>
                 <field name="total_expenses"/>
                 <field name="surplus_amount" optional="show"/>
+                <field name="salary_deduction_amount" optional="show"/>
                 <field name="currency_id" optional="hide"/>
                 <field name="state" widget="badge"
                     decoration-info="state == 'draft'"
@@ -73,6 +74,9 @@
                         <group string="Totales">
                             <field name="total_expenses"/>
                             <field name="surplus_amount"/>
+                            <field name="returned_amount" readonly="state == 'posted'"/>
+                            <field name="salary_deduction_amount" readonly="1"
+                                invisible="salary_deduction_amount == 0"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
                         </group>
                     </group>

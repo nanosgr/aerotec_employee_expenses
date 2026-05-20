@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class AerotecExpenseReport(models.Model):
@@ -88,6 +88,19 @@ class AerotecExpenseReport(models.Model):
         currency_field="currency_id",
         help="Diferencia entre el anticipo y los gastos rendidos. Si es positivo, el empleado debe devolver ese monto.",
     )
+    returned_amount = fields.Monetary(
+        string="Monto realmente devuelto",
+        currency_field="currency_id",
+        states={"posted": [("readonly", True)]},
+        help="Monto que el empleado devuelve efectivamente. Por defecto igual al remanente calculado.",
+    )
+    salary_deduction_amount = fields.Monetary(
+        string="Descuento pendiente de sueldo",
+        compute="_compute_salary_deduction",
+        store=True,
+        currency_field="currency_id",
+        help="Diferencia entre el remanente calculado y el monto realmente devuelto. Se descuenta del próximo sueldo.",
+    )
     account_move_id = fields.Many2one(
         "account.move",
         string="Asiento contable",
@@ -110,6 +123,25 @@ class AerotecExpenseReport(models.Model):
             rec.surplus_amount = max(
                 rec.advance_id.amount - rec.total_expenses, 0.0
             )
+
+    @api.depends("surplus_amount", "returned_amount")
+    def _compute_salary_deduction(self):
+        for rec in self:
+            rec.salary_deduction_amount = max(rec.surplus_amount - rec.returned_amount, 0.0)
+
+    @api.constrains("returned_amount", "surplus_amount")
+    def _check_returned_amount(self):
+        for rec in self:
+            if rec.returned_amount < 0:
+                raise ValidationError(_("El monto devuelto no puede ser negativo."))
+            if rec.returned_amount > rec.surplus_amount:
+                raise ValidationError(
+                    _(
+                        "El monto devuelto (%(ret)s) no puede superar el remanente calculado (%(sur)s).",
+                        ret=rec.returned_amount,
+                        sur=rec.surplus_amount,
+                    )
+                )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -135,7 +167,10 @@ class AerotecExpenseReport(models.Model):
         for rec in self:
             if rec.state != "submitted":
                 continue
-            rec.write({"state": "approved"})
+            vals = {"state": "approved"}
+            if not rec.returned_amount and rec.surplus_amount:
+                vals["returned_amount"] = rec.surplus_amount
+            rec.write(vals)
             rec._notify_employee_approved()
 
     def action_reject(self, reason=None):
@@ -198,7 +233,8 @@ class AerotecExpenseReport(models.Model):
             )
 
         total_gastos = self.total_expenses
-        surplus = advance.amount - total_gastos
+        returned = self.returned_amount
+        deduction = self.salary_deduction_amount
 
         if total_gastos > 0:
             move_lines.append(
@@ -215,7 +251,7 @@ class AerotecExpenseReport(models.Model):
                 )
             )
 
-        if surplus > 0:
+        if returned > 0:
             liquidity_account = journal.default_account_id
             if not liquidity_account:
                 raise UserError(
@@ -232,7 +268,7 @@ class AerotecExpenseReport(models.Model):
                         "account_id": liquidity_account.id,
                         "name": _("Devolución remanente %(name)s", name=self.name),
                         "partner_id": employee_partner.id if employee_partner else False,
-                        "debit": surplus,
+                        "debit": returned,
                         "credit": 0.0,
                     },
                 )
@@ -246,7 +282,44 @@ class AerotecExpenseReport(models.Model):
                         "name": _("Rendición %(name)s - devolución remanente", name=self.name),
                         "partner_id": employee_partner.id if employee_partner else False,
                         "debit": 0.0,
-                        "credit": surplus,
+                        "credit": returned,
+                    },
+                )
+            )
+
+        if deduction > 0:
+            deduction_account = self._get_salary_deduction_account()
+            if not deduction_account:
+                raise UserError(
+                    _(
+                        "Hay un descuento de sueldo pendiente de %(amount)s pero no se configuró la "
+                        "cuenta de descuentos de sueldo. Configure en Ajustes > Gastos de Empleados.",
+                        amount=deduction,
+                    )
+                )
+            move_lines.append(
+                (
+                    0,
+                    0,
+                    {
+                        "account_id": advance_account.id,
+                        "name": _("Rendición %(name)s - descuento de sueldo", name=self.name),
+                        "partner_id": employee_partner.id if employee_partner else False,
+                        "debit": deduction,
+                        "credit": 0.0,
+                    },
+                )
+            )
+            move_lines.append(
+                (
+                    0,
+                    0,
+                    {
+                        "account_id": deduction_account.id,
+                        "name": _("Descuento de sueldo %(name)s", name=self.name),
+                        "partner_id": employee_partner.id if employee_partner else False,
+                        "debit": 0.0,
+                        "credit": deduction,
                     },
                 )
             )
@@ -264,6 +337,16 @@ class AerotecExpenseReport(models.Model):
         move = self.env["account.move"].create(move_vals)
         move.action_post()
         return move
+
+    def _get_salary_deduction_account(self):
+        self.ensure_one()
+        param = self.env["ir.config_parameter"].sudo().get_param(
+            "aerotec_employee_expenses.salary_deduction_account_id"
+        )
+        if param:
+            account = self.env["account.account"].browse(int(param))
+            return account if account.exists() else False
+        return False
 
     def _notify_manager_submitted(self):
         self.ensure_one()

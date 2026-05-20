@@ -12,6 +12,10 @@
                         help="Cuenta contable que se debita al crear un anticipo y se acredita al contabilizar la rendición.">
                         <field name="advance_account_id" options="{'no_create': True}"/>
                     </setting>
+                    <setting string="Cuenta de descuentos de sueldo"
+                        help="Cuenta usada cuando el empleado devuelve menos del remanente calculado. El saldo queda pendiente de descuento en el próximo pago de sueldo.">
+                        <field name="salary_deduction_account_id" options="{'no_create': True}"/>
+                    </setting>
                 </block>
             </xpath>
         </field>

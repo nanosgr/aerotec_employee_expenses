@@ -2,12 +2,9 @@
 <odoo>
 
     <!-- Agrega entrada en el portal home para las rendiciones de gastos -->
-    <template id="portal_my_home_expenses" name="Gastos de Empleados" customize_show="True"
+    <template id="portal_my_home_expenses" name="Gastos de Empleados" customize_show="False"
         inherit_id="portal.portal_my_home" priority="30">
-        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
-            <t t-set="portal_service_category_enable" t-value="True"/>
-        </xpath>
-        <div id="portal_service_category" position="inside">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
             <t t-call="portal.portal_docs_entry">
                 <t t-set="icon" t-value="'/aerotec_employee_expenses/static/src/img/expenses.png'" />
                 <t t-set="title">Mis Rendiciones de Gastos</t>
@@ -15,7 +12,7 @@
                 <t t-set="text">Cargá tus comprobantes y rendí tus gastos</t>
                 <t t-set="placeholder_count" t-value="'expense_count'"/>
             </t>
-        </div>
+        </xpath>
     </template>
 
     <!-- Template para cuando el usuario no tiene empleado asociado -->
