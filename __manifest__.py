@@ -19,6 +19,11 @@
         "templates/portal_layout.xml",
         "templates/portal_expense_detail.xml",
     ],
+    "assets": {
+        "web.assets_frontend": [
+            "aerotec_employee_expenses/static/src/js/portal.js",
+        ],
+    },
     "installable": True,
     "auto_install": False,
 }

@@ -11,6 +11,7 @@
                 <t t-set="url" t-value="'/my/expenses'"/>
                 <t t-set="text">Cargá tus comprobantes y rendí tus gastos</t>
                 <t t-set="placeholder_count" t-value="'expense_count'"/>
+                <t t-set="count" t-value="expense_count"/>
             </t>
         </xpath>
     </template>
