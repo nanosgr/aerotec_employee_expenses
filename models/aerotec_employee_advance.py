@@ -21,14 +21,12 @@ class AerotecEmployeeAdvance(models.Model):
         string="Empleado",
         required=True,
         tracking=True,
-        states={"confirmed": [("readonly", True)], "settled": [("readonly", True)]},
     )
     amount = fields.Monetary(
         string="Monto del anticipo",
         required=True,
         currency_field="currency_id",
         tracking=True,
-        states={"confirmed": [("readonly", True)], "settled": [("readonly", True)]},
     )
     currency_id = fields.Many2one(
         "res.currency",
@@ -41,7 +39,6 @@ class AerotecEmployeeAdvance(models.Model):
         required=True,
         default=fields.Date.context_today,
         tracking=True,
-        states={"confirmed": [("readonly", True)], "settled": [("readonly", True)]},
     )
     payment_method = fields.Selection(
         [
@@ -52,14 +49,12 @@ class AerotecEmployeeAdvance(models.Model):
         string="Medio de pago",
         required=True,
         tracking=True,
-        states={"confirmed": [("readonly", True)], "settled": [("readonly", True)]},
     )
     journal_id = fields.Many2one(
         "account.journal",
         string="Diario de origen",
         required=True,
         tracking=True,
-        states={"confirmed": [("readonly", True)], "settled": [("readonly", True)]},
         help="Diario contable que representa la fuente del dinero (caja, Mercado Pago, tarjeta corporativa).",
     )
     advance_account_id = fields.Many2one(
@@ -67,7 +62,6 @@ class AerotecEmployeeAdvance(models.Model):
         string="Cuenta de anticipos",
         required=True,
         tracking=True,
-        states={"confirmed": [("readonly", True)], "settled": [("readonly", True)]},
         help="Cuenta contable de Anticipos de Sueldo. Se toma de la configuración si no se especifica.",
     )
     state = fields.Selection(

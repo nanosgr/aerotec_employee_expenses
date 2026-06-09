@@ -54,16 +54,16 @@
                     </div>
                     <group>
                         <group string="Empleado y fecha">
-                            <field name="employee_id"/>
-                            <field name="date"/>
+                            <field name="employee_id" readonly="state in ('confirmed', 'settled')"/>
+                            <field name="date" readonly="state in ('confirmed', 'settled')"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group string="Pago">
-                            <field name="payment_method"/>
-                            <field name="journal_id" options="{'no_create': True}"/>
-                            <field name="amount"/>
+                            <field name="payment_method" readonly="state in ('confirmed', 'settled')"/>
+                            <field name="journal_id" options="{'no_create': True}" readonly="state in ('confirmed', 'settled')"/>
+                            <field name="amount" readonly="state in ('confirmed', 'settled')"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
-                            <field name="advance_account_id" options="{'no_create': True}"/>
+                            <field name="advance_account_id" options="{'no_create': True}" readonly="state in ('confirmed', 'settled')"/>
                         </group>
                     </group>
                     <group string="Rendición asociada" invisible="not expense_report_id">

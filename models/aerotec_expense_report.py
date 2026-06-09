@@ -22,11 +22,6 @@ class AerotecExpenseReport(models.Model):
         required=True,
         tracking=True,
         domain=[("state", "=", "confirmed")],
-        states={
-            "submitted": [("readonly", True)],
-            "approved": [("readonly", True)],
-            "posted": [("readonly", True)],
-        },
     )
     employee_id = fields.Many2one(
         "hr.employee",
@@ -46,11 +41,6 @@ class AerotecExpenseReport(models.Model):
         required=True,
         default=fields.Date.context_today,
         tracking=True,
-        states={
-            "submitted": [("readonly", True)],
-            "approved": [("readonly", True)],
-            "posted": [("readonly", True)],
-        },
     )
     state = fields.Selection(
         [
@@ -69,11 +59,6 @@ class AerotecExpenseReport(models.Model):
         "aerotec.expense.line",
         "report_id",
         string="Líneas de gasto",
-        states={
-            "submitted": [("readonly", True)],
-            "approved": [("readonly", True)],
-            "posted": [("readonly", True)],
-        },
     )
     total_expenses = fields.Monetary(
         string="Total gastos",
@@ -91,7 +76,6 @@ class AerotecExpenseReport(models.Model):
     returned_amount = fields.Monetary(
         string="Monto realmente devuelto",
         currency_field="currency_id",
-        states={"posted": [("readonly", True)]},
         help="Monto que el empleado devuelve efectivamente. Por defecto igual al remanente calculado.",
     )
     salary_deduction_amount = fields.Monetary(
