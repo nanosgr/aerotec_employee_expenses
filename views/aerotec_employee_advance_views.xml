@@ -32,10 +32,10 @@
                     <button name="action_confirm" string="Confirmar" type="object"
                         class="btn-primary"
                         invisible="state != 'draft'"
-                        groups="aerotec_employee_expenses.group_expense_manager"/>
+                        groups="aerotec_employee_expenses.group_expense_manager,account.group_account_invoice"/>
                     <button name="action_reset_draft" string="Volver a borrador" type="object"
                         invisible="state != 'confirmed'"
-                        groups="aerotec_employee_expenses.group_expense_manager"
+                        groups="aerotec_employee_expenses.group_expense_manager,account.group_account_invoice"
                         confirm="¿Está seguro? Esto revertirá el asiento contable del anticipo."/>
                     <field name="state" widget="statusbar"
                         statusbar_visible="draft,confirmed,settled"/>

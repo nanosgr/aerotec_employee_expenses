@@ -1,7 +1,10 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_advance_manager,Anticipo: Gerente,aerotec_employee_expenses.model_aerotec_employee_advance,aerotec_employee_expenses.group_expense_manager,1,1,1,1
+access_advance_accounting,Anticipo: Contabilidad,aerotec_employee_expenses.model_aerotec_employee_advance,account.group_account_invoice,1,1,1,1
 access_advance_portal,Anticipo: Portal,aerotec_employee_expenses.model_aerotec_employee_advance,base.group_portal,1,0,0,0
 access_expense_report_manager,Rendición: Gerente,aerotec_employee_expenses.model_aerotec_expense_report,aerotec_employee_expenses.group_expense_manager,1,1,1,1
+access_expense_report_accounting,Rendición: Contabilidad,aerotec_employee_expenses.model_aerotec_expense_report,account.group_account_invoice,1,1,1,1
 access_expense_report_portal,Rendición: Portal,aerotec_employee_expenses.model_aerotec_expense_report,base.group_portal,1,1,1,0
 access_expense_line_manager,Línea de Gasto: Gerente,aerotec_employee_expenses.model_aerotec_expense_line,aerotec_employee_expenses.group_expense_manager,1,1,1,1
+access_expense_line_accounting,Línea de Gasto: Contabilidad,aerotec_employee_expenses.model_aerotec_expense_line,account.group_account_invoice,1,1,1,1
 access_expense_line_portal,Línea de Gasto: Portal,aerotec_employee_expenses.model_aerotec_expense_line,base.group_portal,1,1,1,1
