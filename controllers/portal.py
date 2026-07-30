@@ -15,6 +15,22 @@ class EmployeeExpensePortal(CustomerPortal):
         )
         return employee or None
 
+    def _get_allowed_expense_accounts(self, employee):
+        """Cuentas de gasto que el empleado puede elegir en el portal, según lo
+        configurado en Ajustes > Contabilidad. Si la empresa no configuró
+        ninguna, se permiten todas las cuentas de tipo gasto de esa empresa."""
+        company = employee.company_id or request.env.company
+        allowed = company.sudo().expense_portal_allowed_account_ids
+        if allowed:
+            return allowed.sorted(key=lambda a: a.code or "")
+        return request.env["account.account"].sudo().search(
+            [
+                ("account_type", "like", "expense"),
+                ("company_ids", "in", company.id),
+            ],
+            order="code",
+        )
+
     def _check_report_access(self, report_id, employee):
         """
         Verifica que la rendición exista y pertenezca al empleado.
@@ -98,9 +114,7 @@ class EmployeeExpensePortal(CustomerPortal):
         if not report:
             return request.redirect("/my/expenses")
 
-        expense_accounts = request.env["account.account"].sudo().search(
-            [("account_type", "like", "expense")], order="code"
-        )
+        expense_accounts = self._get_allowed_expense_accounts(employee)
 
         return request.render(
             "aerotec_employee_expenses.portal_expense_detail",
@@ -140,6 +154,8 @@ class EmployeeExpensePortal(CustomerPortal):
         expense_account_id = int(post.get("expense_account_id", 0) or 0)
         notes = post.get("notes", "").strip()
 
+        expense_accounts = self._get_allowed_expense_accounts(employee)
+
         if not name:
             error["name"] = True
             error_message.append(_("La descripción es obligatoria."))
@@ -157,11 +173,11 @@ class EmployeeExpensePortal(CustomerPortal):
         if not expense_account_id:
             error["expense_account_id"] = True
             error_message.append(_("La cuenta de gasto es obligatoria."))
+        elif expense_account_id not in expense_accounts.ids:
+            error["expense_account_id"] = True
+            error_message.append(_("La cuenta de gasto seleccionada no está habilitada."))
 
         if error:
-            expense_accounts = request.env["account.account"].sudo().search(
-                [("account_type", "like", "expense")], order="code"
-            )
             return request.render(
                 "aerotec_employee_expenses.portal_expense_detail",
                 {
@@ -246,9 +262,7 @@ class EmployeeExpensePortal(CustomerPortal):
         try:
             report.action_submit()
         except (UserError, ValidationError) as e:
-            expense_accounts = request.env["account.account"].sudo().search(
-                [("account_type", "like", "expense")], order="code"
-            )
+            expense_accounts = self._get_allowed_expense_accounts(employee)
             return request.render(
                 "aerotec_employee_expenses.portal_expense_detail",
                 {
